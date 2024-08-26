@@ -20,7 +20,7 @@ DOWNLOAD_DIR=your/path/to/download
 
 4. Run the script
 ```bash
-node scrape.js
+node scrape_flac.js
 ```
 
 5. The files will be downloaded and saved into the target folder
