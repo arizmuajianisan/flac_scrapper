@@ -1,13 +1,26 @@
 # Flac Scrapper
 
-This tools is used to download the file audio from certain web.
-Using Puppeteer to handle the automation and interaction with the page.
-Also using Axios for downloading the files.
+This tool is used to download audio files from certain websites.
+It uses Puppeteer for web automation and Axios for file downloads.
 
-## How To Use
+## Prerequisites
+
+### System Dependencies
+Make sure these are installed on your system:
+
+For Ubuntu/Debian:
+```bash
+sudo apt-get update
+sudo apt-get install -y libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libxkbcommon-x11-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64
+```
+
+For other Linux distributions, install the equivalent packages.
+
+## Installation
+
 1. Clone this project
 
-2. Install the independency package
+2. Install the Node.js dependencies:
 ```bash
 npm install
 ```
