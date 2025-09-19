@@ -1,0 +1,13 @@
+[project]
+name = "elscione-scraper"
+version = "0.1.0"
+dependencies = [
+    "requests>=2.32",
+    "beautifulsoup4>=4.12",
+    "questionary>=2.0",
+    "tqdm>=4.66",
+    "playwright>=1.55.0",
+]
+
+[project.scripts]
+scrape = "main:cli"
