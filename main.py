@@ -535,7 +535,39 @@ class MusicScraper:
             questionary.print("\nThank you for using FLAC Scraper! 👋", style="bold")
 
 
+def show_welcome() -> None:
+    """Display welcome message and app information."""
+    from pyfiglet import Figlet
+    
+    # Create a nice ASCII art title
+    f = Figlet(font='slant')
+    title = f.renderText('FLAC Scraper')
+    
+    # Display the welcome message
+    questionary.print("\n" + "="*80, style="bold")
+    questionary.print(title, style="bold cyan")
+    questionary.print("="*80, style="bold")
+    questionary.print("🚀 Welcome to FLAC Scraper - Your tool for downloading FLAC music files", style="bold")
+    questionary.print("-"*80, style="dim")
+    questionary.print("🔍 Features:")
+    questionary.print("  • Browse and download FLAC music files")
+    questionary.print("  • Interactive command-line interface")
+    questionary.print("  • Resumable downloads")
+    questionary.print("  • Caching for faster browsing")
+    questionary.print("\n🙏 Special thanks to Elscione for providing the music content at https://server.elscione.com/Music/")
+    questionary.print("\n📝 Usage:")
+    questionary.print("  • Navigate through directories using the menu")
+    questionary.print("  • Select files to download")
+    questionary.print("  • Press Ctrl+C to exit at any time")
+    questionary.print("\n" + "="*80 + "\n", style="bold")
+
+
 def cli() -> None:
+    # Show welcome message on first run
+    if not os.environ.get("FLAC_SCRAPER_WELCOME_SHOWN"):
+        show_welcome()
+        os.environ["FLAC_SCRAPER_WELCOME_SHOWN"] = "1"
+    
     scraper = MusicScraper()
     scraper.run()
 
