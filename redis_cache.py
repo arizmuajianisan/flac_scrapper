@@ -1,6 +1,7 @@
 """Redis-based caching for the scraper."""
 from __future__ import annotations
 
+import os
 import json
 import logging
 import time
@@ -10,8 +11,20 @@ from typing import Any, Callable, Optional, TypeVar, cast
 import redis
 from redis.exceptions import RedisError
 
-# Global flag to enable/disable Redis
-USE_REDIS = True
+from dotenv import load_dotenv
+load_dotenv()
+
+# Global flag to enable/disable Redis, get from env
+config = {
+    "use_redis": os.getenv("USE_REDIS", "true").lower() in ("true", "1", "t", "y", "yes"),
+    "redis_host": os.getenv("REDIS_HOST", "localhost"),
+    "redis_port": int(os.getenv("REDIS_PORT", "6379")),
+    "redis_db": int(os.getenv("REDIS_DB", "0")),
+    "redis_password": os.getenv("REDIS_PASSWORD", None),
+    "redis_default_ttl": int(os.getenv("REDIS_DEFAULT_TTL", "3600")),
+    "redis_prefix": os.getenv("REDIS_PREFIX", "flac_scrapper:"),
+}
+USE_REDIS = config["use_redis"]
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

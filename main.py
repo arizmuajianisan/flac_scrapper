@@ -22,6 +22,13 @@ from playwright.sync_api import sync_playwright, Error as PWError
 
 from redis_cache import RedisCache
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
+config = {
+    "debug": os.getenv("DEBUG", "false").lower() in ("true", "1", "t", "y", "yes"),
+    }
+
 def get_redis_cache() -> RedisCache:
     """Get a Redis cache instance."""
     return RedisCache()
@@ -32,6 +39,8 @@ REDIS_AVAILABLE = True
 BASE_URL = "https://server.elscione.com"
 ROOT_PATH = "/Music/"
 CHUNK = 1024 * 1024  # 1 MB
+
+DEBUG = config["debug"]
 
 
 class MusicScraper:
@@ -151,7 +160,8 @@ class MusicScraper:
         
         soup = self._soup(path)
         # ----  DEBUG: write raw HTML to disk  ----
-        Path("debug.html").write_text(str(soup), encoding="utf-8")
+        if DEBUG:
+            Path("debug.html").write_text(str(soup), encoding="utf-8")
         # -----------------------------------------
         folders = []
         for li in soup.select("li.item.folder a"):
