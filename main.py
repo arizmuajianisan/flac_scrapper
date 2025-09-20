@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import time
 from pathlib import Path
 from typing import List
 from urllib.parse import urljoin, unquote
@@ -47,8 +48,7 @@ class MusicScraper:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(user_agent=
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/129.0.0.0 Safari/537.36")
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
             try:
                 page.goto(url, wait_until="networkidle", timeout=30_000)
                 html = page.content()
@@ -59,18 +59,57 @@ class MusicScraper:
                 browser.close()
         return BeautifulSoup(html, "html.parser")
 
-    def _download(self, file_url: str, dest: Path) -> None:
+    def _download(self, file_url: str, dest: Path, max_retries: int = 3) -> None:
         dest.parent.mkdir(parents=True, exist_ok=True)
-        resp = self.session.get(file_url, stream=True, timeout=60)
-        resp.raise_for_status()
-        total = int(resp.headers.get("content-length", 0))
-        with dest.open("wb") as fh, tqdm(
-            total=total, unit="B", unit_scale=True, desc=dest.name
-        ) as bar:
-            for chunk in resp.iter_content(chunk_size=CHUNK):
-                if chunk:
-                    fh.write(chunk)
-                    bar.update(len(chunk))
+        
+        # Set up headers to mimic a real browser request
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': self.base_url,
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+        }
+        
+        for attempt in range(max_retries):
+            try:
+                with self.session.get(
+                    file_url, 
+                    stream=True, 
+                    timeout=60,
+                    headers=headers,
+                    allow_redirects=True
+                ) as resp:
+                    resp.raise_for_status()
+                    
+                    # Get total size for progress bar
+                    total = int(resp.headers.get('content-length', 0))
+                    
+                    # Save the file
+                    with dest.open('wb') as fh, tqdm(
+                        total=total, 
+                        unit='B', 
+                        unit_scale=True, 
+                        unit_divisor=1024,
+                        desc=dest.name,
+                        miniters=1
+                    ) as bar:
+                        for chunk in resp.iter_content(chunk_size=CHUNK):
+                            if chunk:  # filter out keep-alive chunks
+                                fh.write(chunk)
+                                bar.update(len(chunk))
+                    return  # Success, exit the retry loop
+                    
+            except requests.exceptions.RequestException as e:
+                if attempt == max_retries - 1:  # Last attempt
+                    raise Exception(f"Failed to download {file_url} after {max_retries} attempts: {e}")
+                questionary.print(f"Attempt {attempt + 1} failed: {e}. Retrying...")
+                time.sleep(1)  # Wait before retry
 
     # ------------------------------------------------------------- navigation
     def list_folders(self, path: str) -> List[tuple[str, str]]:
